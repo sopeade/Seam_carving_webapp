@@ -15,7 +15,7 @@ django-heroku==0.3.1
 gunicorn==21.2.0
 kombu==5.3.2
 numpy==1.26.1
-opencv-python==4.8.1.78
+opencv-contrib-python-headless==4.8.1.78
 packaging==23.2
 Pillow==10.1.0
 prompt-toolkit==3.0.39
