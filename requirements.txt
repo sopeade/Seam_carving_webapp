@@ -14,6 +14,7 @@ django-celery-results==2.5.1
 django-heroku==0.3.1
 gunicorn==21.2.0
 kombu==5.3.2
+mysqlclient==2.2.0
 numpy==1.26.1
 opencv-contrib-python-headless==4.8.1.78
 packaging==23.2
