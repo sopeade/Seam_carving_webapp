@@ -1,0 +1,16 @@
+name: seam_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11.6
+  - opencv=4.8.1
+  - numpy=1.26.0
+  - django=4.2.6
+  - pillow=10.0.1
+  - python-dotenv
+  - pip:
+      - celery
+      - redis
+      - celery-progress
+      - django-celery-results

@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/main_seam_style.css' %}">
+    <script src="{% static 'js/main.js' %}"></script>
+    <title>Document</title>
+</head>
+<body>
+    <h1 id="heading">Seam Carving App</h1>
+    <div class="main_section">
+        <div class="center_section">
+
+
+            <div class="slideshow-container">
+                <div class="mySlides fade" id="first_image">
+                    <div class="graphics_section">
+                        <section class="part1">
+                            <img src="{% static 'graphics/woman_child.jpg' %}" alt="">
+                        </section>
+                        <section class="part2">
+                            <video autoplay loop muted playsinline controls="controls" preload="preload" controls >
+                                <source src="{% static 'graphics/woman_child_v2.mp4' %}" type="video/mp4">
+                            </video>
+                        </section>
+                    </div>
+                </div> 
+
+                <div class="mySlides fade">
+                    <div class="graphics_section">
+                        <section class="part1">
+                            <img src="{% static 'graphics/butterfly.jpg' %}" alt="">
+                        </section>
+                        <section class="part2">
+                            <video autoplay loop muted playsinline controls="controls" preload="preload" controls >
+                                <!-- <source src="Fantaisie Impromptu.mp4" type="video/mp4"> -->
+                                <source src="{% static 'graphics/butterfly_v3.mp4' %}" type="video/mp4">
+                                <!-- <source src="{% static 'graphics/Fantaisie Impromptu.mp4' %}" type="video/mp4"> -->
+                            </video>
+                        </section>
+                    </div>
+                </div> 
+
+                <div class="mySlides fade">
+                    <div class="graphics_section">
+                        <section class="part1">
+                            <img src="{% static 'graphics/bird.jpg' %}" alt="">
+                        </section>
+                        <section class="part2">
+                            <video autoplay loop muted playsinline controls="controls" preload="preload" controls >
+                                <source src="{% static 'graphics/bird_30_v2.mp4' %}" type="video/mp4">
+                            </video>
+                        </section>
+                    </div>
+                </div> 
+
+                <!-- Next and previous buttons -->
+                <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+                <a class="next" onclick="plusSlides(1)">&#10095;</a>
+                <br>
+            </div>
+
+            <div style="text-align:center">
+                <span class="dot" onclick="currentSlide(1)"></span>
+                <span class="dot" onclick="currentSlide(2)"></span>
+                <span class="dot" onclick="currentSlide(3)"></span>
+            </div>
+
+            <div class="text_section">
+                <p>
+                    This app is called Seam carving. This is my implementation of the computer Vision technique for adjusting an images size based on its contents (content aware resizing).
+                    It is based on the paper: <a href="https://dl.acm.org/doi/10.1145/1276377.1276390">Content-Aware Image Resizing</a>.
+                    Regular image modification (e.g. via cropping), works by cutting off content from the boundary of the image. Cropping is a blunt tool functioning regardless of 
+                    the content of the image. Adjusting the image width or height distorts the contents. This technique on the other hand works by removing pixels from within the image ("seams") 
+                    based on a concept of "least cumulative enery". Linear connected pixels of the 
+                    image where the image changes the least(a seam) are calculated mathematically (via minimizing the derivative of the pixel values of the image), and removed. The cumulative effect of removing multiple
+                    seams results in an image which can be cropped with minimal effect on internal content. Seam removal is currently fixed to 30%, empirically determined to minimize image 
+                    artifacts (i.e. mishapen edges, pixel misalignment etc.)
+                    Select an image file to "seam carve" your own image!
+                </p>
+            </div>
+
+        </div>
+
+        <div class="lower_section">
+            <form id="choose_file" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button class='buttons' id='submit_button' type="submit">Submit</button>
+            </form>    
+            <div>
+                <div class='progress-wrapper'>
+                    <div id='progress-bar' class='progress-bar' style="background-color: #68a9ef; width: 0%;">&nbsp;</div>
+                </div>
+                <div id="progress-bar-message">Select your image when ready...</div>
+                <div id="celery-result"></div>
+            </div>
+            <div>
+                <button class='buttons' id="download_button" disabled><a href="{% url 'video_file' %}">Download Image</a></button>
+                <button class='buttons' id="reset"><a href="{% url 'index' %}">Reset</a></button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
