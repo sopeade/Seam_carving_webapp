@@ -90,6 +90,7 @@ pyppmd==1.0.0
 python-dateutil==2.8.2
 pytz==2023.3
 pytz-deprecation-shim==0.1.0.post0
+pyufw==0.0.3
 PyWavelets==1.4.1
 PyYAML==6.0.1
 pyzstd==0.15.6
@@ -121,7 +122,6 @@ traitlets==5.1.1
 typing_extensions==4.5.0
 tzdata==2023.3
 tzlocal==4.3
-ufw==0.36.1
 unattended-upgrades==0.1
 universal-analytics-python3==1.1.1
 urllib3==1.26.15
