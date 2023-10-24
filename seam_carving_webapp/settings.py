@@ -127,7 +127,7 @@ USE_TZ = True
 # static main directory routing 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'static_files')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # celery configuration
 CELERY_BROKER_URL = "redis://localhost/0"
