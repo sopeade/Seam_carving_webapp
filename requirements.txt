@@ -87,7 +87,6 @@ PyJWT==2.3.0
 pymongo==4.3.3
 pyparsing==2.4.7
 pyppmd==1.0.0
-python-apt==2.3.0+ubuntu2.1
 python-dateutil==2.8.2
 pytz==2023.3
 pytz-deprecation-shim==0.1.0.post0
