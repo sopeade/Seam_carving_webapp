@@ -19,7 +19,7 @@ Deprecated==1.2.13
 dill==0.3.6
 distlib==0.3.4
 distro==1.7.0
-distro-info===1.1build1
+distro-info==1.0
 dnspython==2.3.0
 eventlet==0.33.3
 fiftyone==0.20.1
