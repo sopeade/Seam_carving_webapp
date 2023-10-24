@@ -30,7 +30,7 @@ SECRET_KEY = seam_carving_key
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['seam-app-65be144be81b.herokuapp.com']
 
 
 # Application definition
