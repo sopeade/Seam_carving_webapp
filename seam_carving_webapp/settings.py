@@ -85,18 +85,18 @@ WSGI_APPLICATION = 'seam_carving_webapp.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
     # 'default': {
-    #     'ENGINE': os.getenv('MYSQL_ENGINE'),
+    #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
-    #     'USER': os.getenv('MYSQL_USER'),
-    #     'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-    #     'HOST': os.getenv('MYSQL_HOST'),
-    #     'PORT': os.getenv('MYSQL_PORT'),
     # }
+    'default': {
+        'ENGINE': os.getenv('MYSQL_ENGINE'),
+        'NAME': os.getenv('MYSQL_NAME'),
+        'USER': os.getenv('MYSQL_USER'),
+        'PASSWORD': os.getenv('MYSQL_PASSWORD'),
+        'HOST': os.getenv('MYSQL_HOST'),
+        'PORT': os.getenv('MYSQL_PORT'),
+    }
 }
 
 
@@ -156,4 +156,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 django_heroku.settings(locals())
-del DATABASES['default']['OPTIONS']['sslmode']
+# del DATABASES['default']['OPTIONS']['sslmode']
