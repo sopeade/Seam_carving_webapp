@@ -6,7 +6,8 @@ import os
 import cv2
 from numpy.lib.stride_tricks import as_strided, sliding_window_view
 import numpy as np
-
+from .models import Image
+# from PIL import Image as pil_image
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 download_path = os.path.join(BASE_DIR, "media/download_image")
@@ -15,11 +16,18 @@ input_path = os.path.join(BASE_DIR, "media/images")
 
 @shared_task(bind=True)
 def compute_image_energy(self):
+    """
+    Purpose: Use provided user image to create and store collection of processed images.
+    """
     progress_recorder = ProgressRecorder(self)
     filename = os.listdir(os.path.join(BASE_DIR, 'media/images'))[0]
+    
+    # testname = Image.objects.all()
+    # print("testname-----------------------", testname)
     ext = os.path.splitext(filename)[1]
     image = cv2.imread(os.path.join(BASE_DIR, f'media/images/{filename}'))
     num_rows, num_cols, num_chan = image.shape
+    # # Image size validation
     # if (num_rows * num_cols) > 4*1024*1024:
     #     image_file_path = os.path.join(input_path, os.listdir(input_path)[0])
     #     os.remove(image_file_path)
@@ -147,15 +155,3 @@ def compute_image_energy(self):
     cv2.imwrite(os.path.join(download_path, f"seam_image{ext}"), result)
     # return redirect(reverse("video_file"))
     return 'Done'
-    # return HttpResponse("This was a Success.")
-
-
-# @shared_task(bind=True)
-# def compute_image_energy2(self, seconds):
-#     progress_recorder = ProgressRecorder(self)
-#     x = 'happy'
-#     y = 'sad'
-#     for i in range(3):
-#         sleep(seconds)
-#         progress_recorder.set_progress(i + 1, 3, f'On iteration {i}')
-#     return x, y

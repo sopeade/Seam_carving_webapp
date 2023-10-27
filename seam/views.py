@@ -14,6 +14,7 @@ import numpy as np
 from numpy.lib.stride_tricks import as_strided, sliding_window_view
 from shutil import rmtree
 from .tasks import compute_image_energy
+# from PIL import Image as pil_image
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 download_path = os.path.join(BASE_DIR, "media/download_image")
@@ -24,6 +25,17 @@ all_paths = [download_path, seams_path, input_path, video_path]
 
 
 class index(CreateView):
+    """
+    Purpose: Clear database of any images, then Render the initial home page and provide a form for user to submit an image
+    """
+    # input("pause-here1")
+    # myfile = Image.objects.all()
+    # print("myfile", myfile, myfile[0], type(myfile[0]))
+    # val = cv2.imread(myfile[0])
+    # x = pil_image.open(Image.objects.all()[0])
+    # print("x", x)
+    # input("pause-again1")
+    Image.objects.all().delete()
     for each_path in all_paths:
         if os.path.exists(each_path):
             rmtree(each_path)
@@ -33,13 +45,31 @@ class index(CreateView):
     template_name = "index.html"
     success_url = reverse_lazy("seam_carving")
 
+# def index(request):
+#     if request.method == "POST":
+#         form = PostForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             form.save()
+            
+
+
 def seam_carving(request): 
+    """
+    Purpose: Receive user image, process the image.
+    """
+    # input("pause-here2")
+    # myfile = Image.objects.all()
+
+    # print("myfile", myfile, myfile[0])
+    # input("pause-again2")
     task = compute_image_energy.delay()
-    print("task.task_id", task.task_id)
     return render(request, 'main.html', {'task_id': task.task_id})
 
 
 def video_file(request):
+    """
+    Purpose: Create video from collection of processed images.
+    """
     print("video_file ****************************************")
     filename = os.listdir(os.path.join(BASE_DIR, 'media/images'))[0]
     name = os.path.splitext(filename)[0]
@@ -73,7 +103,12 @@ def video_file(request):
 
 
 def download_file(request):
+    """
+    Purpose: Return final (last) processed image result to user
+    
+    """
     print("download_file ****************************************")
+
     filename = os.listdir(download_path)[0]
     filepath = os.path.join(download_path, filename)
     # Open the file for reading content
