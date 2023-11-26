@@ -83,8 +83,6 @@
         </div>
 
 
-
-
         <div class="lower_section">
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -100,7 +98,8 @@
                 <div id="celery-result"></div>
             </div>
             <div>
-                <button class='buttons' id="download_button" disabled><a href="{% url 'video_file' %}">Download</a></button>
+                <!-- <button class='buttons' id="download_button" disabled><a href="{% url 'download_file' %}">Download Image</a></button> -->
+                <button class='buttons' id="download_button" disabled><a href="{% url 'video_file' %}">Download Image</a></button>
                 <button class='buttons' id="reset"><a href="{% url 'index' %}">Reset</a></button>
             </div>
         </div>
@@ -128,8 +127,11 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
-        CeleryProgressBar.initProgressBar(progressUrl, {onResult: myresult, onError: myerror});
+        var show_progressbar = JSON.parse("{{show_progressbar|escapejs}}")
+        if (show_progressbar) {
+            var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
+            CeleryProgressBar.initProgressBar(progressUrl, {onResult: myresult, onError: myerror});
+        }
     });
 
 </script>

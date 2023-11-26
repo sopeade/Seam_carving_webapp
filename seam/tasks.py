@@ -5,36 +5,57 @@ from time import time
 import os
 import cv2
 from numpy.lib.stride_tricks import as_strided, sliding_window_view
+from django.conf import settings
 import numpy as np
 from .models import Image
+import boto3
+import io
 # from PIL import Image as pil_image
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-download_path = os.path.join(BASE_DIR, "media/download_image")
-seams_path = os.path.join(BASE_DIR, "media/download_seams")
-input_path = os.path.join(BASE_DIR, "media/images")
+input_path  = settings.INPUT_PATH
+output_path = settings.OUTPUT_PATH
+seams_path  = settings.SEAMS_PATH
+video_path  = settings.VIDEO_PATH
+local_storage = settings.LOCAL_STORAGE_VAL
+
 
 @shared_task(bind=True)
-def compute_image_energy(self):
+def compute_image_energy(self, data):
     """
     Purpose: Use provided user image to create and store collection of processed images.
     """
     progress_recorder = ProgressRecorder(self)
-    filename = os.listdir(os.path.join(BASE_DIR, 'media/images'))[0]
     
-    # testname = Image.objects.all()
-    # print("testname-----------------------", testname)
-    ext = os.path.splitext(filename)[1]
-    image = cv2.imread(os.path.join(BASE_DIR, f'media/images/{filename}'))
+    if local_storage:
+        filename = os.listdir(input_path)[0]
+        ext = os.path.splitext(filename)[1]
+        image = cv2.imread(os.path.join(input_path, f'{filename}'))
+        slider_value       = data['slider_value']
+    else:
+        user              = data['user']
+        input_path_rem    = data['input_path']
+        output_path_rem   = data['output_path']
+        seams_path_rem    = data['seams_path']
+        bucket_name       = data['bucket_name']
+        slider_value      = data['slider_value']
+        filename       = data['file_name']
+        ext = os.path.splitext(filename)[1]
+        s3 = boto3.resource('s3')
+        image = s3.Bucket(bucket_name).Object(input_path_rem).get().get('Body').read()
+        image = cv2.imdecode(np.asarray(bytearray(image)), cv2.IMREAD_COLOR)
+        # print("bucket_name", bucket_name, "input_path_rem", input_path_rem)
+    print("slider_value#####################", slider_value)
     num_rows, num_cols, num_chan = image.shape
-    # # Image size validation
+    print("image.shape", image.shape)
+    # # Image size validation 
     # if (num_rows * num_cols) > 4*1024*1024:
     #     image_file_path = os.path.join(input_path, os.listdir(input_path)[0])
     #     os.remove(image_file_path)
     #     raise ValidationError("Image size too large. Needs to be < 4MB")
-    pct_seams_to_remove=0.3
+    pct_seams_to_remove= int(slider_value)
+    # pct_seams_to_remove= 0.3
+    # pct_seams_to_remove= 30
     redSeams = True
-    # start = time()
     test_array = np.copy(image)
     ini_img = np.copy(image)
     count = 0
@@ -42,9 +63,10 @@ def compute_image_energy(self):
     vectorize = True
     mode = 'edge'
     start = len(test_array[0])
-    end = int((1-pct_seams_to_remove)*len(image[0]))
+    end = int((100-pct_seams_to_remove)/100*num_cols)
 
-    while len(test_array[0]) > int((1-pct_seams_to_remove)*len(image[0])):
+
+    while len(test_array[0]) > end:
         
         dx = cv2.Sobel(test_array,cv2.CV_64F,1,0,ksize=1)
         dy = cv2.Sobel(test_array,cv2.CV_64F,0,1,ksize=1)
@@ -57,13 +79,8 @@ def compute_image_energy(self):
         kernel = np.array([1, 1, 1])
         pad_tot_eng = np.pad(tot_eng, pad_width=((0, 0), (1, 1)), mode=mode)
         pad_curr_eng = np.pad(curr_eng, pad_width=((0, 0), (1, 1)), mode=mode)
-        
+
         if vectorize:
-            # vectorize rows (total_time 25secs)
-        # def compute_image_energy(pad_tot_eng, pad_curr_eng, kernel, prev_index) 
-
-        # task = compute_image_energy.delay(self, pad_tot_eng, pad_curr_eng, kernel, prev_index)
-
             for idx_r, _ in enumerate(pad_tot_eng[1:], start=1):
                 upper_row = pad_tot_eng[idx_r - 1]
                 slide_row = sliding_window_view(upper_row, kernel.shape)   #get a strided view
@@ -81,8 +98,6 @@ def compute_image_energy(self):
                 total = min_top_val + curr_row
                 padded_total = np.pad(total, pad_width=1, mode=mode)
                 pad_tot_eng[idx_r] = padded_total
-
-
             tot_eng = pad_tot_eng[:,1:-1]
         
         else:
@@ -114,11 +129,10 @@ def compute_image_energy(self):
             mask[row_idx][min_col_idy] = False #this will make mask an array of ones with a strip of zeros
             min_col_idy = int(prev_index[row_idx][min_col_idy]) #get the index of the minimum cell that led to (i.e. above) this cell
 
-
         # weight mask against test_array and tot_eng thus removing pixels and reshape array
-        test_array = test_array + .1
+        test_array = test_array + .1                   # add a small delta to ensure that zeros in the original image are not affected
         test_array_ini = test_array
-        test_array = test_array*np.atleast_3d(mask)    #strip of zeros
+        test_array = test_array*np.atleast_3d(mask)    #make mask same dimesion as test_array and multiply to get a strip of zeros
 
         if redSeams:
             boolean_seam = (np.atleast_3d(mask)*-1) + 1    # seam is now a single positive jagged colum of ones
@@ -128,10 +142,16 @@ def compute_image_energy(self):
             red_seam_3d[:, : ,2] = red_seam_2d
             red_seam_img = test_array + red_seam_3d
             red_seam_img.astype(np.uint8)
-            cv2.imwrite(os.path.join(seams_path, f"seam_image{count}{ext}"), red_seam_img)
+
+            if local_storage:
+                cv2.imwrite(os.path.join(seams_path, f"seam_image{count}.png"), red_seam_img)
+            else:
+                path = os.path.join(seams_path_rem, f'seam_image{count}.png')
+                red_seam_img = cv2.imencode('.png', red_seam_img)[1].tobytes()
+                image = s3.Bucket(bucket_name).put_object(Key=path, Body=red_seam_img, ContentType='image/png')
 
         test_array = (test_array[test_array != 0]).reshape(len(test_array),len(test_array[0])-1,3) # remove blank strip from image and reshape
-        test_array = test_array - .1
+        test_array = test_array - .1              # remove small delta that was previously added
 
         # As the image reduced in size (above), we have to reduce the size of the corresponding tot_eng array to match
         tot_eng = tot_eng +.1
@@ -140,18 +160,16 @@ def compute_image_energy(self):
         tot_eng = tot_eng - .1
         min_col_idy = np.where(tot_eng[-1] == min(tot_eng[-1]))[0][0]
         count += 1
-        # print(f"count{count}")
         begin_pct = int((start - len(test_array[0])) * 100/ (start - end))
         end_pct = 100
         progress_recorder.set_progress(begin_pct, 100)
-    # end_while = time()
 
-    result = test_array.astype(np.uint8)
-    # end = time()
-    # total_time = end - start
-    # while_time = end_while - start_while
-
-    # print(f"total_time:  {total_time}, time in while loop: {while_time}")
-    cv2.imwrite(os.path.join(download_path, f"seam_image{ext}"), result)
-    # return redirect(reverse("video_file"))
-    return 'Done'
+    test_array.astype(np.uint8)
+    print("count", count)
+    if local_storage:
+        cv2.imwrite(os.path.join(output_path, f"result.png"), test_array)
+    else:
+        path = os.path.join(output_path_rem, f'result.png')
+        result = cv2.imencode('.png', test_array)[1].tobytes()
+        s3.Bucket(bucket_name).put_object(Key=path, Body=result, ContentType='image/png')
+    return 'done'

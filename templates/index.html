@@ -12,8 +12,6 @@
     <h1 id="heading">Seam Carving App</h1>
     <div class="main_section">
         <div class="center_section">
-
-
             <div class="slideshow-container">
                 <div class="mySlides fade" id="first_image">
                     <div class="graphics_section">
@@ -85,11 +83,23 @@
         </div>
 
         <div class="lower_section">
-            <form id="choose_file" method="post" enctype="multipart/form-data">
+            <!-- <form id="choose_file" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <button class='buttons' id='submit_button' type="submit">Submit</button>
+            </form>     -->
+
+            <form action="{% url 'index' %}" id="choose_file" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <input type="range" min="0" max="40" value="20" class="slider" name="slider_value" id="myRange">
+                <p><span id="demo"></span></p>
+                <button class='buttons' id='submit_button' type="submit">Submit</button>
             </form>    
+
+            <!-- <div class="slidecontainer"> -->
+            <!-- </div> -->
+
             <div>
                 <div class='progress-wrapper'>
                     <div id='progress-bar' class='progress-bar' style="background-color: #68a9ef; width: 0%;">&nbsp;</div>
@@ -98,10 +108,21 @@
                 <div id="celery-result"></div>
             </div>
             <div>
-                <button class='buttons' id="download_button" disabled><a href="{% url 'video_file' %}">Download Image</a></button>
+                <button class='buttons' id="download_button" disabled><a href="{% url 'download_file' %}">Download Image</a></button>
                 <button class='buttons' id="reset"><a href="{% url 'index' %}">Reset</a></button>
             </div>
         </div>
     </div>
 </body>
+
+<script>
+    var slider = document.getElementById("myRange");
+    var output = document.getElementById("demo");
+    output.innerHTML = slider.value; // Display the default slider value
+
+    // Update the current slider value (each time you drag the slider handle)
+    slider.oninput = function() {
+        output.innerHTML = this.value;
+}
+</script>
 </html>
