@@ -16,7 +16,6 @@ from .tasks import compute_image_energy
 import uuid
 import boto3
 import json
-import requests
 
 
 input_path    = settings.INPUT_PATH
@@ -145,9 +144,6 @@ def download_image(request):
             #                                     ExpiresIn = 600, )
             # return HttpResponseRedirect(url)
             # print("url", url, type(url))
-            # if url is not None:
-            #     x = requests.get("https://google.com")
-            #     response = requests.get(url)
         
     return response
 
