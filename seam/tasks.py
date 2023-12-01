@@ -8,11 +8,12 @@ import numpy as np
 from .models import Image
 import boto3
 import io
+import tempfile
 
-input_path  = settings.INPUT_PATH
-output_path = settings.OUTPUT_PATH
-seams_path  = settings.SEAMS_PATH
-video_path  = settings.VIDEO_PATH
+input_path_local  = settings.INPUT_PATH
+output_path_local = settings.OUTPUT_PATH
+seams_path_local  = settings.SEAMS_PATH
+video_path_local  = settings.VIDEO_PATH
 local_storage = settings.LOCAL_STORAGE_VAL
 store_aws_local = settings.STORE_AWS_LOCAL
 
@@ -24,22 +25,19 @@ def compute_image_energy(self, data):
     progress_recorder = ProgressRecorder(self)
     
     if local_storage:
-        filename = os.listdir(input_path)[0]
+        filename = os.listdir(input_path_local)[0]
         ext = os.path.splitext(filename)[1]
-        image = cv2.imread(os.path.join(input_path, f'{filename}'))
+        image = cv2.imread(os.path.join(input_path_local, f'{filename}'))
         slider_value       = data['slider_value']
     else:
         user              = data['user']
         input_path_rem    = data['input_path']
         output_path_rem   = data['output_path']
         seams_path_rem    = data['seams_path']
+        video_path_rem    = data['video_path']
         bucket_name       = data['bucket_name']
         slider_value      = data['slider_value']
         filename          = data['file_name']
-        input_aws         = data['input_aws']  
-        output_aws        = data['output_aws'] 
-        seams_aws         = data['seams_aws']  
-        video_aws         = data['video_aws']  
         ext = os.path.splitext(filename)[1]
         s3 = boto3.resource('s3')
         image = s3.Bucket(bucket_name).Object(input_path_rem).get().get('Body').read()
@@ -55,7 +53,7 @@ def compute_image_energy(self, data):
     start = len(test_array[0])
     end = int((100-pct_seams_to_remove)/100*num_cols)
 
-
+    # loop over image, identifying and removing min energy seams
     while len(test_array[0]) > end:
         
         dx = cv2.Sobel(test_array,cv2.CV_64F,1,0,ksize=1)
@@ -134,13 +132,14 @@ def compute_image_energy(self, data):
             red_seam_img.astype(np.uint8)
 
             if local_storage:
-                cv2.imwrite(os.path.join(seams_path, f"seam_image{count}.png"), red_seam_img)
+                cv2.imwrite(os.path.join(seams_path_local, f"seam_image{count}.png"), red_seam_img)
             else:
                 if store_aws_local:
-                    cv2.imwrite(os.path.join(seams_aws, f"seam_image{count}.png"), red_seam_img)
+                    # cv2.imwrite(os.path.join(seams_aws, f"seam_image{count}.png"), red_seam_img)
+                    cv2.imwrite(os.path.join(seams_path_rem, f"seam_image{count}.png"), red_seam_img)
                 else:
                     path = os.path.join(seams_path_rem, f'seam_image{count}.png')
-                    red_seam_img = cv2.imencode('.png', red_seam_img)[1].tobytes()
+                    red_seam_img = cv2.imencode('.png', red_seam_img)[1].tobytes()  # imencode returns success, value so index 1 to obtain value
                     image = s3.Bucket(bucket_name).put_object(Key=path, Body=red_seam_img, ContentType='image/png')
 
         test_array = (test_array[test_array != 0]).reshape(len(test_array),len(test_array[0])-1,3) # remove blank strip from image and reshape
@@ -158,32 +157,35 @@ def compute_image_energy(self, data):
         progress_recorder.set_progress(begin_pct, 100)
 
     test_array.astype(np.uint8)
+
+    # store the final image result
     if local_storage:
-        cv2.imwrite(os.path.join(output_path, f"result.png"), test_array)
+        cv2.imwrite(os.path.join(output_path_local, f"result.png"), test_array)
     else:
         if store_aws_local:
-            cv2.imwrite(os.path.join(output_aws, f"result.png"), test_array)
+            cv2.imwrite(os.path.join(output_path_rem, f"result.png"), test_array)
         else:
             path = os.path.join(output_path_rem, f'result.png')
             result = cv2.imencode('.png', test_array)[1].tobytes()
             s3.Bucket(bucket_name).put_object(Key=path, Body=result, ContentType='image/png')
     
+    # create and store the video result
     if local_storage:
-        filename = os.listdir(input_path)[0]
-        seam_images = os.listdir(seams_path)
+        filename = os.listdir(input_path_local)[0]
+        seam_images = os.listdir(seams_path_local)
         num_seam_images = len(seam_images)
         seam_image_0 = seam_images[0]
-        image = cv2.imread(os.path.join(seams_path, seam_image_0))
+        image = cv2.imread(os.path.join(seams_path_local, seam_image_0))
         name = os.path.splitext(filename)[0]
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         height, width, ch = image.shape
-        video = cv2.VideoWriter(os.path.join(video_path, f'vid.mp4'), fourcc, 30, (width, height))
+        video = cv2.VideoWriter(os.path.join(video_path_local, f'vid.mp4'), fourcc, 30, (width, height))
         img_canvas =  np.uint8(np.zeros((height, width, ch)))
         adj_width = width
         
         # get images and stitch together to form video
         for i in range(count):
-            img = cv2.imread(os.path.join(seams_path, f'seam_image{i}.png'))
+            img = cv2.imread(os.path.join(seams_path_local, f'seam_image{i}.png'))
 
 
             img_canvas[:,0:adj_width,:] = img
@@ -202,28 +204,42 @@ def compute_image_energy(self, data):
         image = cv2.imdecode(np.asarray(bytearray(image)), cv2.IMREAD_COLOR)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         height, width, ch = image.shape
-        video = cv2.VideoWriter(os.path.join(video_aws, f'vid.mp4'), fourcc, 30, (width, height))
-        img_canvas =  np.uint8(np.zeros((height, width, ch)))
-        adj_width = width
         
-        # get images and stitch together to form video
-        for i in range(count):
-            if store_aws_local:
-                img = cv2.imread(os.path.join(seams_aws, f'seam_image{i}.png'))
-                img_canvas[:,0:adj_width,:] = img
-                adj_width -= 1
-                video.write(img_canvas)
-                img_canvas = np.uint8(np.zeros((height, width, ch)))
-            else:
-                s3 = boto3.resource('s3')
-                key = os.path.join(seams_aws, f'seam_image{i}.png')
-                img = s3.Bucket(bucket_name).Object(key).get().get('Body').read()
-                img = cv2.imdecode(np.asarray(bytearray(img)), cv2.IMREAD_COLOR)
-                img_canvas[:,0:adj_width,:] = img
-                adj_width -= 1
-                video.write(img_canvas)
-                img_canvas = np.uint8(np.zeros((height, width, ch)))
 
-        cv2.destroyAllWindows()
-        video.release()
+        # -save video to temp location for situations which do not support saving to drive/filesystem e.g. heroku deploy
+        video_file = None
+        with tempfile.NamedTemporaryFile() as temp:
+            video = cv2.VideoWriter(os.path.join(temp.name, f'vid.mp4'), fourcc, 30, (width, height))
+            video_file = temp
+
+        # -------------------------------------------------
+        # video = cv2.VideoWriter(os.path.join(video_path_rem, f'vid.mp4'), fourcc, 30, (width, height))
+            img_canvas =  np.uint8(np.zeros((height, width, ch)))
+            adj_width = width
+            
+            # get images and stitch together to form video
+            for i in range(count):
+                if store_aws_local:
+                    img = cv2.imread(os.path.join(seams_path_rem, f'seam_image{i}.png'))
+                    img_canvas[:,0:adj_width,:] = img
+                    adj_width -= 1
+                    video.write(img_canvas)
+                    img_canvas = np.uint8(np.zeros((height, width, ch)))
+                else:
+                    s3 = boto3.resource('s3')
+                    key = os.path.join(seams_path_rem, f'seam_image{i}.png')
+                    img = s3.Bucket(bucket_name).Object(key).get().get('Body').read()
+                    img = cv2.imdecode(np.asarray(bytearray(img)), cv2.IMREAD_COLOR)
+                    img_canvas[:,0:adj_width,:] = img
+                    adj_width -= 1
+                    video.write(img_canvas)
+                    img_canvas = np.uint8(np.zeros((height, width, ch)))
+
+            cv2.destroyAllWindows()
+            video.release()
+            print("video_file", video_file, type(video_file), type(video_file.name))
+            s3 = boto3.client("s3")
+            s3.upload_fileobj(video_file,
+                                bucket_name, 
+                                    video_path_rem)
     return 'done'

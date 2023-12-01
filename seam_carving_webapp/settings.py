@@ -171,7 +171,8 @@ if DATABASES['default'].get('OPTIONS'):
 
 # LOCAL_STORAGE_VAL = True
 LOCAL_STORAGE_VAL = False
-STORE_AWS_LOCAL = True
+# STORE_AWS_LOCAL = True
+STORE_AWS_LOCAL = False
 
 if LOCAL_STORAGE_VAL:
     MEDIA_URL = '/media/'
