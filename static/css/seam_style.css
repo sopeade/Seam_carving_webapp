@@ -1,0 +1,210 @@
+@import url("https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap");
+body {
+  background: rgb(35, 35, 49);
+}
+
+#heading {
+  color: white;
+  text-align: center;
+}
+
+.main_section {
+  display: grid;
+  margin: 0px auto;
+  width: 100%;
+  height: 100%;
+  grid-template-rows: 3fr 1fr;
+  max-width: 1400px;
+  max-height: 90vh;
+  overflow-y: hidden;
+}
+.main_section .center_section {
+  margin: 0px auto 10px auto;
+  min-height: 80%;
+  max-height: 850px;
+  border: 5px solid rgb(130, 127, 134);
+  width: 90%;
+  background: white;
+  text-align: center;
+  overflow: hidden;
+  /* The dots/bullets/indicators */
+}
+.main_section .center_section .graphics_section {
+  height: 70%;
+  display: flex;
+  min-height: 410px;
+}
+.main_section .center_section .graphics_section .part1 {
+  width: 50%;
+}
+.main_section .center_section .graphics_section .part1 img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  overflow: hidden;
+}
+.main_section .center_section .graphics_section .part2 {
+  width: 50%;
+  overflow: hidden;
+}
+.main_section .center_section .graphics_section .part2 video {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  overflow: hidden;
+}
+.main_section .center_section .text_section {
+  margin: 0px;
+  overflow-y: auto;
+  font-family: "Bradley Hand", cursive;
+  font-size: 1em;
+  height: 230px;
+}
+.main_section .center_section .text_section p {
+  margin: 5px;
+}
+.main_section .center_section .dot {
+  cursor: pointer;
+  height: 15px;
+  width: 15px;
+  margin: 0 2px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+  transition: background-color 0.6s ease;
+}
+.main_section .center_section .active, .main_section .center_section .dot:hover {
+  background-color: #717171;
+}
+.main_section .lower_section {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  max-height: 140px;
+  width: 90%;
+  margin: 0px auto;
+  /* The slider itself */
+  /* Mouse-over effects */
+  /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+}
+.main_section .lower_section #progress-bar-message {
+  color: white;
+}
+.main_section .lower_section button:disabled,
+.main_section .lower_section button[disabled] {
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: grey;
+  pointer-events: none;
+}
+.main_section .lower_section .flex_slider_container {
+  display: flex;
+}
+.main_section .lower_section .flex_child:first-child {
+  margin-right: 5px;
+}
+.main_section .lower_section #choose_file {
+  color: white;
+}
+.main_section .lower_section .slidecontainer {
+  width: 100%; /* Width of the outside container */
+}
+.main_section .lower_section .slider {
+  -webkit-appearance: none; /* Override default CSS styles */
+  -moz-appearance: none;
+       appearance: none;
+  width: 100%; /* Full-width */
+  height: 25px; /* Specified height */
+  background: #d3d3d3; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */ /* 0.2 seconds transition on hover */
+  transition: opacity 0.2s;
+  border-radius: 5px;
+}
+.main_section .lower_section .slider:hover {
+  opacity: 1; /* Fully shown on mouse-over */
+}
+.main_section .lower_section .slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 25px; /* Set a specific slider handle width */
+  height: 25px; /* Slider handle height */
+  background: rgb(130, 127, 134); /* Green background */
+  border-radius: 2px;
+  cursor: pointer; /* Cursor on hover */
+}
+.main_section .lower_section .download_data {
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-gap: 0px;
+  margin: 0px;
+}
+
+/* Hide the images by default */
+/* Slideshow container */
+.slideshow-container {
+  position: relative;
+}
+
+.mySlides {
+  display: none;
+}
+
+.prev, .next {
+  cursor: pointer;
+  position: absolute;
+  top: 45%;
+  width: auto;
+  margin-top: -22px;
+  padding: 16px;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  transition: 0.6s ease;
+  border-radius: 0 3px 3px 0;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.prev {
+  left: -10px;
+}
+
+.next {
+  right: -10px;
+}
+
+/* On hover, add a black background color with a little bit see-through */
+.prev:hover, .next:hover {
+  background-color: rgba(49, 80, 109, 0.8);
+}
+
+/* Fading animation */
+.fade {
+  animation-name: fade;
+  animation-duration: 1.5s;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.buttons {
+  background: rgb(54, 126, 106);
+  max-height: 25px;
+  border-radius: 10px;
+  margin: 10px;
+  color: black;
+}
+
+.bottons:hover {
+  transform: scale(1.05);
+}/*# sourceMappingURL=seam_style.css.map */

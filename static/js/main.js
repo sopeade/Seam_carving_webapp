@@ -1,10 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("ok im here")
     document.getElementById("download_button").setAttribute("pointer-events", 'none');
     document.getElementById("download_button").setAttribute("disabled", true);
     document.getElementById("download_button").style.color = 'grey';
+    document.getElementById("download_video_button").setAttribute("pointer-events", 'none');
+    document.getElementById("download_video_button").setAttribute("disabled", true);
+    document.getElementById("download_video_button").style.color = 'grey';
     document.getElementById("first_image").style.display = 'block';
-});
+    });
 
 
 let slideIndex = 1;
@@ -32,6 +34,7 @@ for (i = 0; i < slides.length; i++) {
 for (i = 0; i < dots.length; i++) {
     dots[i].className = dots[i].className.replace(" active", "");
 }
+console.log("slides", slides);
 slides[slideIndex-1].style.display = "block";
 dots[slideIndex-1].className += " active";
 }

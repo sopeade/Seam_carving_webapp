@@ -26,8 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 load_dotenv()
-seam_carving_key = os.getenv('SEAM_CARVING_KEY')
-SECRET_KEY = seam_carving_key
+SECRET_KEY = os.getenv('SEAM_CARVING_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -152,8 +151,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFileStorage'
 
 
 # celery configuration
-CELERY_BROKER_URL = "redis://localhost/0"
-# CELERY_BROKER_URL = 'redis://default:z8ODfDzl0UXOKv9ZJD9hDka3jz8Ab4Mi@redis-10701.c99.us-east-1-4.ec2.cloud.redislabs.com:10701'
+# CELERY_BROKER_URL = "redis://localhost/0"
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'django-db'
@@ -171,7 +170,7 @@ if DATABASES['default'].get('OPTIONS'):
 
 # LOCAL_STORAGE_VAL = True
 LOCAL_STORAGE_VAL = False
-
+STORE_AWS_LOCAL = True
 
 if LOCAL_STORAGE_VAL:
     MEDIA_URL = '/media/'
@@ -192,5 +191,7 @@ INPUT_PATH  = os.path.join(BASE_DIR, "media/input")
 OUTPUT_PATH = os.path.join(BASE_DIR, "media/output")
 SEAMS_PATH  = os.path.join(BASE_DIR, "media/seams")
 VIDEO_PATH  = os.path.join(BASE_DIR, "media/video")
-VIDEO_PATH2  = os.path.join(BASE_DIR, "media/aws_video")
+VIDEO_PATH_AWS  = os.path.join(BASE_DIR, "media")
+# VIDEO_PATH2  = os.path.join(BASE_DIR, "media/aws_video")
 BUCKET_NAME = 'seam-project'
+

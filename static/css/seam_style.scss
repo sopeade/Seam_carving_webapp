@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+
+body {
+    background: rgb(35, 35, 49);
+}
+
+#heading{
+    color: white;
+    text-align: center;
+}
+.main_section{
+    display: grid;
+    margin:0px auto;
+    width: 100%;
+    height: 100%;
+    grid-template-rows: 3fr 1fr;
+    max-width: 1400px;
+    max-height: 90vh;
+    overflow-y: hidden;
+    .center_section{
+        margin: 0px auto 10px auto;
+        min-height: 80%;
+        max-height: 850px;
+        // border: 5px solid green;
+        border: 5px solid rgb(130, 127, 134);
+        width: 90%;
+        background: white;
+        text-align: center;
+        overflow: hidden;
+        .graphics_section{
+            height: 70%;
+            display: flex;
+            min-height: 410px;
+            .part1{
+                width: 50%;
+                img{
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    overflow: hidden;
+                }
+            }
+
+            .part2{
+                width: 50%;
+                overflow: hidden;
+                video{
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    overflow: hidden;
+                }
+            }
+
+        }
+        
+        .text_section{
+            margin:0px;
+            overflow-y:auto;
+            font-family: "Bradley Hand", cursive;
+            font-size: 1em;
+            height: 230px;
+            p{
+              margin:5px;
+            }
+        }
+
+        /* The dots/bullets/indicators */
+        .dot {
+          cursor: pointer;
+          height: 15px;
+          width: 15px;
+          margin: 0 2px;
+          background-color: #bbb;
+          border-radius: 50%;
+          display: inline-block;
+          transition: background-color 0.6s ease;
+        }
+        
+        .active, .dot:hover {
+          background-color: #717171;
+        }
+    }
+    
+    .lower_section{
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content:space-between;
+        max-height: 140px;
+        width: 90%;
+        margin: 0px auto;
+        #progress-bar-message{
+            color: white;
+        }
+
+        button:disabled,
+        button[disabled]{
+            border: 1px solid #999999;
+            background-color: #cccccc;
+            color: grey;
+            pointer-events: none;
+            
+        }
+
+        .flex_slider_container{
+          display: flex;
+        }
+
+        .flex_child:first-child{
+          margin-right:5px;
+        }
+        
+
+        #choose_file{
+            color: white;
+        }
+
+        .slidecontainer {
+          width: 100%; /* Width of the outside container */
+        }
+
+        /* The slider itself */
+        .slider {
+          -webkit-appearance: none;  /* Override default CSS styles */
+          appearance: none;
+          width: 100%; /* Full-width */
+          height: 25px; /* Specified height */
+          background: #d3d3d3; /* Grey background */
+          outline: none; /* Remove outline */
+          opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+          -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+          transition: opacity .2s;
+          border-radius: 5px;
+        }
+        
+        /* Mouse-over effects */
+        .slider:hover {
+          opacity: 1; /* Fully shown on mouse-over */
+        }
+        
+        /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+        .slider::-webkit-slider-thumb {
+          -webkit-appearance: none; /* Override default look */
+          appearance: none;
+          width: 25px; /* Set a specific slider handle width */
+          height: 25px; /* Slider handle height */
+          // background: #04AA6D; /* Green background */
+          background: rgb(130, 127, 134); /* Green background */
+          border-radius: 2px;
+          cursor: pointer; /* Cursor on hover */
+        }
+        
+        .download_data{
+          display: grid;
+          grid-template-rows: 1fr 1fr 1fr;
+          grid-gap: 0px;
+          margin: 0px;
+        }
+    }
+}
+
+// ------------------------------
+/* Hide the images by default */
+/* Slideshow container */
+.slideshow-container {
+    position: relative;
+    // margin: auto;
+  }
+  
+
+.mySlides {
+    display: none;
+  }
+
+
+.prev, .next {
+    cursor: pointer;
+    position: absolute;
+    top: 45%;
+    width: auto;
+    margin-top: -22px;
+    padding: 16px;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    transition: 0.6s ease;
+    border-radius: 0 3px 3px 0;
+    user-select: none;
+    background-color: rgba(0,0,0,0.8);
+  }
+
+  .prev{
+    left: -10px;
+  }
+
+  .next{
+    right: -10px;
+  }
+
+  /* On hover, add a black background color with a little bit see-through */
+  .prev:hover, .next:hover {
+    background-color: rgba(49, 80, 109, 0.8);
+  }
+
+
+  /* Fading animation */
+  .fade {
+    animation-name: fade;
+    animation-duration: 1.5s;
+  }
+
+
+  @keyframes fade {
+    from {opacity: .4}
+    to {opacity: 1}
+  }
+  
+// -----------------------
+.buttons {
+    // background: cyan;
+    background: rgb(54, 126, 106);
+    max-height:25px;
+    border-radius: 10px;
+    margin: 10px;
+    color: black;
+    
+}
+.bottons:hover {
+  transform: scale(1.05);
+  } 
+
+
+@media only screen and (min-width: 48em) {
+}

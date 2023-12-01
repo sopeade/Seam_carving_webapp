@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/main_seam_style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/seam_style.css' %}">
     <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
     <title>Document</title>
 </head>
 <body>
@@ -13,7 +14,21 @@
     <div class="main_section">
         <div class="center_section">
             <div class="slideshow-container">
+
                 <div class="mySlides fade" id="first_image">
+                    <div class="graphics_section">
+                        <section class="part1">
+                            <img src="{% static 'graphics/cats.jpg' %}" alt="">
+                        </section>
+                        <section class="part2">
+                            <video autoplay loop muted playsinline controls="controls" preload="preload" controls >
+                                <source src="{% static 'graphics/cats.mp4' %}" type="video/mp4">
+                            </video>
+                        </section>
+                    </div>
+                </div> 
+
+                <div class="mySlides fade">
                     <div class="graphics_section">
                         <section class="part1">
                             <img src="{% static 'graphics/woman_child.jpg' %}" alt="">
@@ -33,9 +48,7 @@
                         </section>
                         <section class="part2">
                             <video autoplay loop muted playsinline controls="controls" preload="preload" controls >
-                                <!-- <source src="Fantaisie Impromptu.mp4" type="video/mp4"> -->
                                 <source src="{% static 'graphics/butterfly_v3.mp4' %}" type="video/mp4">
-                                <!-- <source src="{% static 'graphics/Fantaisie Impromptu.mp4' %}" type="video/mp4"> -->
                             </video>
                         </section>
                     </div>
@@ -47,6 +60,7 @@
                             <img src="{% static 'graphics/bird.jpg' %}" alt="">
                         </section>
                         <section class="part2">
+                            <video autoplay loop muted playsinline controls="controls" preload="preload" controls >
                             <video autoplay loop muted playsinline controls="controls" preload="preload" controls >
                                 <source src="{% static 'graphics/bird_30_v2.mp4' %}" type="video/mp4">
                             </video>
@@ -64,18 +78,18 @@
                 <span class="dot" onclick="currentSlide(1)"></span>
                 <span class="dot" onclick="currentSlide(2)"></span>
                 <span class="dot" onclick="currentSlide(3)"></span>
+                <span class="dot" onclick="currentSlide(4)"></span>
             </div>
 
             <div class="text_section">
                 <p>
-                    This app is called Seam carving. This is my implementation of the computer Vision technique for adjusting an images size based on its contents (content aware resizing).
-                    It is based on the paper: <a href="https://dl.acm.org/doi/10.1145/1276377.1276390">Content-Aware Image Resizing</a>.
-                    Regular image modification (e.g. via cropping), works by cutting off content from the boundary of the image. Cropping is a blunt tool functioning regardless of 
-                    the content of the image. Adjusting the image width or height distorts the contents. This technique on the other hand works by removing pixels from within the image ("seams") 
-                    based on a concept of "least cumulative enery". Linear connected pixels of the 
-                    image where the image changes the least(a seam) are calculated mathematically (via minimizing the derivative of the pixel values of the image), and removed. The cumulative effect of removing multiple
-                    seams results in an image which can be cropped with minimal effect on internal content. Seam removal is currently fixed to 30%, empirically determined to minimize image 
-                    artifacts (i.e. mishapen edges, pixel misalignment etc.)
+                    This is my implementation of the Computer Vision Technique "Seam Carving", based on the paper: <a href="https://dl.acm.org/doi/10.1145/1276377.1276390">Content-Aware Image Resizing</a>, for
+                    resizing an image based on its contents.
+                    Regular image modification leaves unwanted distortions. E.g. Cropping cuts off peripheral content from an image whereas adjusting the image width or height distorts the contents by stretching or compressing. 
+                </p>
+                <p>
+                    Seam Carving however works by removing pixels with the "lowest cumulative enery" from within the image. Linear connected pixels of the image ("Seams") where the image changes the least are calculated mathematically (via minimizing the derivative of the pixel values of the image), and removed. The effect of removing multiple
+                    seams is a resized image with minimal effect on internal content. Note: Large seam removal percentages will likely still incur image artifacts (i.e. mishapen edges, pixel misalignment etc.) as such Seam removal has been capped at 40%.
                     Select an image file to "seam carve" your own image!
                 </p>
             </div>
@@ -83,32 +97,31 @@
         </div>
 
         <div class="lower_section">
-            <!-- <form id="choose_file" method="post" enctype="multipart/form-data">
+            <div id="upload_data">
+                <form action="{% url 'index' %}" id="choose_file" method="post" enctype="multipart/form-data">
+                <span>Seam Removal %</span>
+                <div class="flex_slider_container">
+                    <span class="flex_child"><input type="range" min="0" max="40" value="20" class="slider" name="slider_value" id="myRange"></span>
+                    <span><span class="flex_child" id="demo"></span>%</span>
+                </div>
                 {% csrf_token %}
                 {{ form.as_p }}
+                
                 <button class='buttons' id='submit_button' type="submit">Submit</button>
-            </form>     -->
+                </form>    
+            </div>
 
-            <form action="{% url 'index' %}" id="choose_file" method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <input type="range" min="0" max="40" value="20" class="slider" name="slider_value" id="myRange">
-                <p><span id="demo"></span></p>
-                <button class='buttons' id='submit_button' type="submit">Submit</button>
-            </form>    
-
-            <!-- <div class="slidecontainer"> -->
-            <!-- </div> -->
-
-            <div>
+            <div id="progress_info">
                 <div class='progress-wrapper'>
                     <div id='progress-bar' class='progress-bar' style="background-color: #68a9ef; width: 0%;">&nbsp;</div>
                 </div>
-                <div id="progress-bar-message">Select your image when ready...</div>
+                <div id="progress-bar-message"></div>
                 <div id="celery-result"></div>
             </div>
-            <div>
-                <button class='buttons' id="download_button" disabled><a href="{% url 'download_file' %}">Download Image</a></button>
+
+            <div class="download_data">
+                <button class='buttons' id="download_button" disabled><a href="{% url 'download_image' %}">Download Image</a></button>
+                <button class='buttons' id="download_video_button" disabled><a href="{% url 'download_video' %}">Download Video</a></button>
                 <button class='buttons' id="reset"><a href="{% url 'index' %}">Reset</a></button>
             </div>
         </div>
@@ -123,6 +136,43 @@
     // Update the current slider value (each time you drag the slider handle)
     slider.oninput = function() {
         output.innerHTML = this.value;
-}
+    }
 </script>
+
+
+{% if task_id %}
+    <script>
+        function myresult() {
+            
+
+            document.getElementById("download_button").setAttribute("pointer-events", 'auto');
+            document.getElementById("download_button").removeAttribute("disabled");
+            document.getElementById("download_button").style.color = 'black';
+            document.getElementById("download_video_button").setAttribute("pointer-events", 'auto');
+            document.getElementById("download_video_button").removeAttribute("disabled");
+            document.getElementById("download_video_button").style.color = 'black';
+            document.getElementById("submit_button").setAttribute("pointer-events", 'none');
+            document.getElementById("submit_button").setAttribute("disabled", true);
+            document.getElementById("submit_button").style.color = 'grey';
+        }
+        function myerror() {
+            document.getElementById('progress-bar-message').innerHTML="Image File is larger than 4MB";
+        }
+
+        function myprogress() {
+            document.getElementById("submit_button").setAttribute("pointer-events", 'none');
+            document.getElementById("submit_button").setAttribute("disabled", true);
+            document.getElementById("submit_button").style.color = 'grey';
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var show_progressbar = JSON.parse("{{show_progressbar|escapejs}}")
+            if (show_progressbar) {
+                console.log("I'm on the index page");
+                var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
+                CeleryProgressBar.initProgressBar(progressUrl, {onResult: myresult, onError: myerror});
+            }
+        });
+    </script>
+{% endif %}
 </html>

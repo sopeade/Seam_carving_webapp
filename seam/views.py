@@ -9,8 +9,6 @@ from django.conf import settings
 from .forms import PostForm
 from .models import Image
 import mimetypes
-from time import time
-import time
 import numpy as np
 from shutil import rmtree
 from .tasks import compute_image_energy
@@ -23,25 +21,21 @@ input_path    = settings.INPUT_PATH
 output_path   = settings.OUTPUT_PATH
 seams_path    = settings.SEAMS_PATH
 video_path    = settings.VIDEO_PATH
-video_path_aws= settings.VIDEO_PATH2
+video_path_aws= settings.VIDEO_PATH_AWS
 local_storage = settings.LOCAL_STORAGE_VAL
-all_paths     = [output_path, seams_path, input_path, video_path, video_path_aws]
+store_aws_local = settings.STORE_AWS_LOCAL
+all_paths     = [output_path, seams_path, input_path, video_path]
 
-# print("input_path", input_path)
-# MYBASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# input_path2 = os.path.join(MYBASE_DIR, "media/images")
-# print("input_path2", input_path2)
-
-# if local_storage:
-for each_path in all_paths:
-    if os.path.exists(each_path):
-        rmtree(each_path)
-    os.makedirs(each_path)
+if local_storage:
+    for each_path in all_paths:
+        if os.path.exists(each_path):
+            rmtree(each_path)
+        os.makedirs(each_path)
 
 
 # stackoverflow how to upload a file in django 5871730
 def index(request):
-    
+    '''Get image from user and save image'''
     if request.method == "POST":
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
@@ -51,20 +45,29 @@ def index(request):
                 request.session['slider_value'] = request.POST['slider_value'] 
                 print("value from html***************************", request.POST['slider_value'])
             else:
-                # print("video_path_aws", video_path_aws)
-                user                                  = uuid.uuid4().hex
+                user                             = uuid.uuid4().hex
                 request.session['current_user']  = user
                 request.session['input_path']    = f'media/{user}/input'
                 request.session['output_path']   = f'media/{user}/output'
                 request.session['seams_path']    = f'media/{user}/seams'
                 request.session['video_path']    = f'media/{user}/video'
-                request.session['video_path_aws']    = os.path.join(video_path_aws, f'{user}')
                 request.session['bucket_name']   = settings.BUCKET_NAME
-                request.session['file_name']   = request.FILES['cover'].name
-                request.session['slider_value'] = request.POST['slider_value'] 
+                request.session['file_name']     = request.FILES['cover'].name
+                request.session['slider_value']  = request.POST['slider_value']
+                 
 
-
-                # 
+                path = os.path.join(video_path_aws, f'{user}')
+                request.session['user_directory']  = path
+                subpaths = ['input', 'output', 'seams', 'video']
+                if os.path.exists(path):
+                    rmtree(path)
+                else: 
+                    for subpath in subpaths:
+                        ondrive_path = os.path.join(path, subpath)
+                        val = subpath + '_aws'
+                        print("val", val, ondrive_path)
+                        request.session[val] = ondrive_path 
+                        os.makedirs(ondrive_path)
                 s3 = boto3.client("s3")
                 s3.upload_fileobj(request.FILES['cover'],
                                     request.session['bucket_name'], 
@@ -73,7 +76,7 @@ def index(request):
 
     else:
         form = PostForm()
-    return render(request, "index.html", {"form": form, 'show_progressbar': json.dumps(False)})
+    return render(request, "index.html", {"form": form, 'show_progressbar': json.dumps(False), 'task_id': ""})
 
 
 def seam_carving(request): 
@@ -84,86 +87,23 @@ def seam_carving(request):
     print("yo************", request.session['slider_value'])
     data['slider_value']     = request.session['slider_value']
     if not local_storage:
-        data['user']          = request.session['current_user']
-        data['input_path']    = request.session['input_path']
-        data['output_path']   = request.session['output_path']
-        data['seams_path']    = request.session['seams_path']
-        data['bucket_name']   = request.session['bucket_name']
-        data['file_name']     = request.session['file_name']
+        data['user']         = request.session['current_user']
+        data['input_path']   = request.session['input_path']
+        data['output_path']  = request.session['output_path']
+        data['seams_path']   = request.session['seams_path']
+        data['bucket_name']  = request.session['bucket_name']
+        data['file_name']    = request.session['file_name']
+        data['input_aws']    = request.session['input_aws']
+        data['output_aws']   = request.session['output_aws']
+        data['seams_aws']    = request.session['seams_aws']
+        data['video_aws']    = request.session['video_aws']
+
+
     task = compute_image_energy.delay(data)
-    return render(request, 'main.html', {'task_id': task.task_id, 'show_progressbar': json.dumps(True)})
+    return render(request, 'index.html', {'task_id': task.task_id, 'show_progressbar': json.dumps(True)})
 
 
-def video_file(request):
-    """
-    Purpose: Create video from collection of processed images.
-    """
-    print("video_file ****************************************")
-    # get image size
-    if local_storage:
-        filename = os.listdir(input_path)[0]
-        seam_images = os.listdir(seams_path)
-        num_seam_images = len(seam_images)
-        seam_image_0 = seam_images[0]
-        image = cv2.imread(os.path.join(seams_path, seam_image_0))
-
-    else:
-        key = request.session['input_path']
-        bucket_name = request.session['bucket_name']
-        filename = os.path.basename(key)
-        s3 = boto3.resource('s3')
-        image = s3.Bucket(bucket_name).Object(key).get().get('Body').read()
-        image = cv2.imdecode(np.asarray(bytearray(image)), cv2.IMREAD_COLOR)
-
-        # create the video path by loading empty object
-        path = request.session['video_path']
-        s3.Bucket(bucket_name).put_object(Key=path, Body="")
-    name = os.path.splitext(filename)[0]
-    video_cap = cv2.VideoCapture("vid.mp4")
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    height, width, ch = image.shape
-
-    if local_storage:
-        video = cv2.VideoWriter(os.path.join(video_path, f'vid.mp4'), fourcc, 30, (width, height))
-
-    else:
-        # -----------------------incomplete figure out how to upload directly to S3 without storing on disk first
-        filename = request.session['video_path_aws']
-        aws_path = os.path.join(filename, f'vid.mp4')
-        video = cv2.VideoWriter(os.path.join(video_path, f'vid.mp4'), fourcc, 30, (width, height))
-
-    img_canvas =  np.uint8(np.zeros((height, width, ch)))
-    adj_width = width
-    
-    # get images and stitch together to form video
-    for i in range(20):
-        print("i: ", i)
-        # incomplete
-        # --------------------------------------------
-        if local_storage:
-            img = cv2.imread(os.path.join(seams_path, f'seam_image{i}.png'))
-        else:
-            bucket_name = request.session['bucket_name']
-            s3 = boto3.resource('s3')
-            key = os.path.join(request.session['seams_path'], f'seam_image{i}.png')
-            img = s3.Bucket(bucket_name).Object(key).get().get('Body').read()
-            img = cv2.imdecode(np.asarray(bytearray(img)), cv2.IMREAD_COLOR)
-
-            # s3 = boto3.client('s3')
-            # s3.download_file(bucket_name, key)
-
-
-        img_canvas[:,0:adj_width,:] = img
-        adj_width -= 1
-        video.write(img_canvas)
-        img_canvas = np.uint8(np.zeros((height, width, ch)))
-
-    cv2.destroyAllWindows()
-    video.release()
-    return redirect(reverse("download_file"))
-
-
-def download_file(request):
+def download_image(request):
     """
     Purpose: Return final (last) processed image result to user
     
@@ -180,67 +120,81 @@ def download_file(request):
             response = HttpResponse(path, content_type=mime_type)
             response['Content-Disposition'] = f"attachment; filename={filename}"
         # ------------------------------------------
+        return response
 
     else:
-        bucket_name = request.session['bucket_name']
-        output_path_rem = request.session['output_path']
-        myresult = "result.png"
-        file_location_s3 = os.path.join(output_path_rem, myresult)
-        s3 = boto3.client("s3")
-        url = s3.generate_presigned_url(
-                                            'get_object', 
-                                            Params = { 
-                                                        'Bucket': bucket_name, 
-                                                        'Key': file_location_s3}, 
-                                            ExpiresIn = 600, )
-        return HttpResponseRedirect(url)
+        if store_aws_local:
+            filename = os.listdir(request.session['output_aws'])[0]
+            filepath = os.path.join(request.session['output_aws'], filename)
+            with open(filepath, 'rb') as path:
+                mime_type, _ = mimetypes.guess_type(filepath)
+                response = HttpResponse(path, content_type=mime_type)
+                response['Content-Disposition'] = f"attachment; filename={filename}"
+            return response
+        else:
+        
+            bucket_name = request.session['bucket_name']
+            output_path_rem = request.session['output_path']
+            myresult = "result.png"
+            file_location_s3 = os.path.join(output_path_rem, myresult)
+            s3 = boto3.client("s3")
+            url = s3.generate_presigned_url(
+                                                'get_object', 
+                                                Params = { 
+                                                            'Bucket': bucket_name, 
+                                                            'Key': file_location_s3}, 
+                                                ExpiresIn = 600, )
+            return HttpResponseRedirect(url)
 
     form = PostForm()
     return render(request, "index.html", {"form": form})
 
 
-def syntaxclassbasedview():
-    # # Class based view approach
-    # class index(CreateView):
-    #     """
-    #     Purpose: Render the initial home page and provide a form for user to submit an image
-    #     """
+def download_video(request):
+    """
+    Purpose: Return final (last) processed image result to user
+    
+    """
+    print("download_file ****************************************")
+    response = None
 
-    #     model = Image
-    #     form_class = PostForm
-    #     template_name = "index.html"
-    #     success_url = reverse_lazy("seam_carving")
+    if local_storage:
+        # -----------------------------------------
+        filename = os.listdir(video_path)[0]
+        filepath = os.path.join(video_path, filename)
+        with open(filepath, 'rb') as path:
+            mime_type, _ = mimetypes.guess_type(filepath)
+            response = HttpResponse(path, content_type=mime_type)
+            response['Content-Disposition'] = f"attachment; filename={filename}"
+        # ------------------------------------------
+        return response
 
+    else:
+        if store_aws_local:
+            filename = os.listdir(request.session['video_aws'])[0]
+            filepath = os.path.join(request.session['video_aws'], filename)
+            with open(filepath, 'rb') as path:
+                mime_type, _ = mimetypes.guess_type(filepath)
+                response = HttpResponse(path, content_type=mime_type)
+                response['Content-Disposition'] = f"attachment; filename={filename}"
+                # if os.path.exists(request.session['user_directory']):
+                #     rmtree(each_path)
+            return response
+        else:
+        
+            bucket_name = request.session['bucket_name']
+            vid_path = request.session['video_aws']
+            myresult = "result.png"
+            file_location_s3 = os.path.join(vid_path, myresult)
+            s3 = boto3.client("s3")
+            url = s3.generate_presigned_url(
+                                                'get_object', 
+                                                Params = { 
+                                                            'Bucket': bucket_name, 
+                                                            'Key': file_location_s3}, 
+                                                ExpiresIn = 600, )
+            return HttpResponseRedirect(url)
 
-    # Class based view approach with some additional processing
-    # class index(CreateView):
-    #     """
-    #     Purpose: Render the initial home page and provide a form for user to submit an image
-    #     """
+    form = PostForm()
+    return render(request, "index.html", {"form": form})
 
-    #     model = Image
-    #     form_class = PostForm
-    #     template_name = "index.html"
-    #     success_url = reverse_lazy("seam_carving")
-
-    #     def form_valid(self, form):
-    #     #     # Create unique userid and save necessary 'global' parameters using requests
-    #         # if not local_storage:
-    #         #     user                                  = uuid.uuid4().hex
-    #         #     self.request.session['current_user']  = user
-    #         #     self.request.session['input_path']    = f'media/{user}/input'
-    #         #     self.request.session['output_path']   = f'media/{user}/output'
-    #         #     self.request.session['seams_path']    = f'media/{user}/seams'
-    #         #     self.request.session['bucket_name']   = 'seam-project'
-
-    #         #     if self.request.method == "POST":
-    #         #         s3 = boto3.client("s3")
-    #         #         s3.upload_fileobj(self.request.FILES['cover'],
-    #         #                             self.request.session['bucket_name'], 
-    #         #                                 self.request.session['input_path'])
-
-    #         return redirect(reverse('seam_carving'))
-
-    # def home(request):
-    #     return render(request, 'index.html')
-    pass
