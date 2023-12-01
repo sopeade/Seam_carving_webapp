@@ -152,7 +152,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFileStorage'
 
 # celery configuration
 # CELERY_BROKER_URL = "redis://localhost/0"
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
+# CELERY_BROKER_URL = os.getenv('REDIS_CLOUD_URL')
+CELERY_BROKER_URL = os.getenv('REDIS_HEROKU_URL')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'django-db'
