@@ -237,7 +237,7 @@ def compute_image_energy(self, data):
                 video.write(img_canvas)
                 img_canvas = np.uint8(np.zeros((height, width, ch)))
 
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
         video.release()
         temp.seek(0)
         # cv2.imwrite("testing_temp.mp4", temp)
