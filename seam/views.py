@@ -130,6 +130,7 @@ def download_image(request):
             myresult = "result.png"
             file_location_s3 = os.path.join(output_path_rem, myresult)
             file_obj = download_bytes_object(bucket_name, file_location_s3)
+            print("file_obj", type(file_obj))
             mime_type, _ = mimetypes.guess_type(myresult)
             response = HttpResponse(file_obj, content_type=mime_type)
             response['Content-Disposition'] = f"attachment; filename={myresult}"
@@ -156,7 +157,7 @@ def download_video(request):
     Purpose: Return final (last) processed image result to user
     
     """
-    print("download_file ****************************************")
+    print("download_video ****************************************")
     response = None
 
     if local_storage:
@@ -185,7 +186,7 @@ def download_video(request):
         
             bucket_name = request.session['bucket_name']
             vid_path = request.session['video_path']
-            myresult = "result.png"
+            myresult = "result.mp4"
             # file_location_s3 = os.path.join(vid_path, myresult)
             # file_obj = download_bytes_object(bucket_name, file_location_s3)
             file_obj = download_bytes_object(bucket_name, vid_path)

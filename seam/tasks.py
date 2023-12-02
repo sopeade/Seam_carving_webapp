@@ -165,9 +165,9 @@ def compute_image_energy(self, data):
         if store_aws_local:
             cv2.imwrite(os.path.join(output_path_rem, f"result.png"), test_array)
         else:
-            path = os.path.join(output_path_rem, f'result.png')
+            remote_location = os.path.join(output_path_rem, f'result.png')
             result = cv2.imencode('.png', test_array)[1].tobytes()
-            s3.Bucket(bucket_name).put_object(Key=path, Body=result, ContentType='image/png')
+            s3.Bucket(bucket_name).put_object(Key=remote_location, Body=result, ContentType='image/png')
     
     # create and store the video result
     if local_storage:
@@ -208,38 +208,45 @@ def compute_image_energy(self, data):
 
         # -save video to temp location for situations which do not support saving to drive/filesystem e.g. heroku deploy
         video_file = None
-        with tempfile.NamedTemporaryFile() as temp:
-            video = cv2.VideoWriter(os.path.join(temp.name, f'vid.mp4'), fourcc, 30, (width, height))
-            video_file = temp
+
+        temp = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
+        # with tempfile.NamedTemporaryFile() as temp:
+            # video = cv2.VideoWriter(os.path.join(temp.name, f'vid.mp4'), fourcc, 30, (width, height))
+        video = cv2.VideoWriter(temp.name, fourcc, 30, (width, height))
 
         # -------------------------------------------------
         # video = cv2.VideoWriter(os.path.join(video_path_rem, f'vid.mp4'), fourcc, 30, (width, height))
-            img_canvas =  np.uint8(np.zeros((height, width, ch)))
-            adj_width = width
-            
-            # get images and stitch together to form video
-            for i in range(count):
-                if store_aws_local:
-                    img = cv2.imread(os.path.join(seams_path_rem, f'seam_image{i}.png'))
-                    img_canvas[:,0:adj_width,:] = img
-                    adj_width -= 1
-                    video.write(img_canvas)
-                    img_canvas = np.uint8(np.zeros((height, width, ch)))
-                else:
-                    s3 = boto3.resource('s3')
-                    key = os.path.join(seams_path_rem, f'seam_image{i}.png')
-                    img = s3.Bucket(bucket_name).Object(key).get().get('Body').read()
-                    img = cv2.imdecode(np.asarray(bytearray(img)), cv2.IMREAD_COLOR)
-                    img_canvas[:,0:adj_width,:] = img
-                    adj_width -= 1
-                    video.write(img_canvas)
-                    img_canvas = np.uint8(np.zeros((height, width, ch)))
+        img_canvas =  np.uint8(np.zeros((height, width, ch)))
+        adj_width = width
+        
+        # get images and stitch together to form video
+        for i in range(count):
+            if store_aws_local:
+                img = cv2.imread(os.path.join(seams_path_rem, f'seam_image{i}.png'))
+                img_canvas[:,0:adj_width,:] = img
+                adj_width -= 1
+                video.write(img_canvas)
+                img_canvas = np.uint8(np.zeros((height, width, ch)))
+            else:
+                s3 = boto3.resource('s3')
+                key = os.path.join(seams_path_rem, f'seam_image{i}.png')
+                img = s3.Bucket(bucket_name).Object(key).get().get('Body').read()
+                img = cv2.imdecode(np.asarray(bytearray(img)), cv2.IMREAD_COLOR)
+                img_canvas[:,0:adj_width,:] = img
+                adj_width -= 1
+                video.write(img_canvas)
+                img_canvas = np.uint8(np.zeros((height, width, ch)))
 
-            cv2.destroyAllWindows()
-            video.release()
-            print("video_file", video_file, type(video_file), type(video_file.name))
-            s3 = boto3.client("s3")
-            s3.upload_fileobj(video_file,
-                                bucket_name, 
-                                    video_path_rem)
+        cv2.destroyAllWindows()
+        video.release()
+        temp.seek(0)
+        # cv2.imwrite("testing_temp.mp4", temp)
+        s3 = boto3.client("s3")
+        # s3.upload_fileobj(temp,
+        #                     bucket_name, 
+        #                         video_path_rem)
+        # s3.put_object(temp, Bucket=bucket_name, Key=video_path_rem)
+        s3.put_object(Bucket=bucket_name, Key=video_path_rem, Body=temp)
+        temp.close()
+        # print("video_file", video_file, type(video_file), type(video_file.name))
     return 'done'
