@@ -1,10 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("download_button").setAttribute("pointer-events", 'none');
-    document.getElementById("download_button").setAttribute("disabled", true);
-    document.getElementById("download_button").style.color = 'grey';
     document.getElementById("download_video_button").setAttribute("pointer-events", 'none');
     document.getElementById("download_video_button").setAttribute("disabled", true);
     document.getElementById("download_video_button").style.color = 'grey';
+    document.getElementById("download_button").setAttribute("pointer-events", 'none');
+    document.getElementById("download_button").setAttribute("disabled", true);
+    document.getElementById("download_button").style.color = 'grey';
     document.getElementById("first_image").style.display = 'block';
     });
 

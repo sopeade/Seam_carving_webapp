@@ -111,8 +111,6 @@ def download_image(request):
             mime_type, _ = mimetypes.guess_type(filepath)
             response = HttpResponse(path, content_type=mime_type)
             response['Content-Disposition'] = f"attachment; filename={filename}"
-        # ------------------------------------------
-        # return response
 
     else:
         if store_aws_local:
@@ -148,9 +146,6 @@ def download_image(request):
         
     return response
 
-    # form = PostForm()
-    # return render(request, "index.html", {"form": form})
-
 
 def download_video(request):
     """
@@ -168,8 +163,7 @@ def download_video(request):
             mime_type, _ = mimetypes.guess_type(filepath)
             response = HttpResponse(path, content_type=mime_type)
             response['Content-Disposition'] = f"attachment; filename={filename}"
-        # ------------------------------------------
-        # return response
+
 
     else:
         if store_aws_local:
@@ -179,32 +173,18 @@ def download_video(request):
                 mime_type, _ = mimetypes.guess_type(filepath)
                 response = HttpResponse(path, content_type=mime_type)
                 response['Content-Disposition'] = f"attachment; filename={filename}"
-                # if os.path.exists(request.session['user_directory']):
-                #     rmtree(each_path)
-            # return response
+
         else:
         
             bucket_name = request.session['bucket_name']
             vid_path = request.session['video_path']
             myresult = "result.mp4"
-            # file_location_s3 = os.path.join(vid_path, myresult)
-            # file_obj = download_bytes_object(bucket_name, file_location_s3)
             file_obj = download_bytes_object(bucket_name, vid_path)
             mime_type, _ = mimetypes.guess_type(myresult)
             response = HttpResponse(file_obj, content_type=mime_type)
             response['Content-Disposition'] = f"attachment; filename={myresult}"
-            # ---------------------------------------------------------
-            # s3 = boto3.client("s3")
-            # url = s3.generate_presigned_url(
-            #                                     'get_object', 
-            #                                     Params = { 
-            #                                                 'Bucket': bucket_name, 
-            #                                                 'Key': file_location_s3}, 
-            #                                     ExpiresIn = 600, )
-            # return url
+
     return response
-    # form = PostForm()
-    # return render(request, "index.html", {"form": form})
 
 
 def download_bytes_object(bucket_name, s3_key):

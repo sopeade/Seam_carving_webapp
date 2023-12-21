@@ -229,6 +229,73 @@ body {
   transform: scale(1.05);
   } 
 
+#back_to_main{
+  position: absolute;
+  top: 1%;
+  right: 2%;
+  //float: right;
+  background: burlywood;
+  max-height:25px;
+  border-radius: 10px;
+  margin: 10px;
+  padding: 3px 10px 10px 10px;
+  color: black;
+  text-align: center;
+  a{
+    color: black;
+  }
+  :hover{
+    transform: scale(1.05);
+  }
+}
+
+
+ul{
+  //display: none;
+  position: absolute;
+  bottom: 10%;
+  right:2%;
+  list-style-type: none;
+  background: antiquewhite;
+  max-height:25px;
+  border-radius: 10px;
+  margin: 10px;
+  padding: 3px 10px 10px 10px;
+  color: black;
+  text-align: center;
+  a{
+    color: black;
+  }
+  p{
+    display: none;
+  }
+  span{
+    font-weight: bold;
+  }
+  :hover{
+    //display: none;
+    #about_project{
+      position: absolute;
+      z-index:999;
+      width: 200px;
+      background: antiquewhite;
+      height: 55vh;
+      padding: 1em;
+      bottom: 0%;
+      right: 0%;
+      border-radius:10px;
+      overflow: hidden;
+      p{
+        display: block;
+      }
+    }
+  }
+
+  //:hover{
+  //  display: none;
+  //}
+}
+
 
 @media only screen and (min-width: 48em) {
 }

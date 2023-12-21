@@ -55,7 +55,7 @@ def compute_image_energy(self, data):
 
     # loop over image, identifying and removing min energy seams
     while len(test_array[0]) > end:
-        
+        print(f"current_count: {count}, end: {end}")
         dx = cv2.Sobel(test_array,cv2.CV_64F,1,0,ksize=1)
         dy = cv2.Sobel(test_array,cv2.CV_64F,0,1,ksize=1)
         energy = abs(dy) + abs(dx)
