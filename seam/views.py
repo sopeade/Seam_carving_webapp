@@ -24,7 +24,7 @@ seams_path    = settings.SEAMS_PATH
 video_path    = settings.VIDEO_PATH
 video_path_aws= settings.VIDEO_PATH_AWS
 local_storage = settings.LOCAL_STORAGE_VAL
-store_aws_local = settings.STORE_AWS_LOCAL
+# store_aws_local = settings.STORE_AWS_LOCAL
 all_paths     = [output_path, seams_path, input_path, video_path]
 
 if local_storage:
@@ -113,36 +113,36 @@ def download_image(request):
             response['Content-Disposition'] = f"attachment; filename={filename}"
 
     else:
-        if store_aws_local:
-            filename = os.listdir(request.session['output_path'])[0]
-            filepath = os.path.join(request.session['output_path'], filename)
-            with open(filepath, 'rb') as path:
-                mime_type, _ = mimetypes.guess_type(filepath)
-                response = HttpResponse(path, content_type=mime_type)
-                response['Content-Disposition'] = f"attachment; filename={filename}"
+        # if store_aws_local:
+        #     filename = os.listdir(request.session['output_path'])[0]
+        #     filepath = os.path.join(request.session['output_path'], filename)
+        #     with open(filepath, 'rb') as path:
+        #         mime_type, _ = mimetypes.guess_type(filepath)
+        #         response = HttpResponse(path, content_type=mime_type)
+        #         response['Content-Disposition'] = f"attachment; filename={filename}"
 
-        else:
+        # else:
         
-            bucket_name = request.session['bucket_name']
-            output_path_rem = request.session['output_path']
-            myresult = "result.png"
-            file_location_s3 = os.path.join(output_path_rem, myresult)
-            file_obj = download_bytes_object(bucket_name, file_location_s3)
-            print("file_obj", type(file_obj))
-            mime_type, _ = mimetypes.guess_type(myresult)
-            response = HttpResponse(file_obj, content_type=mime_type)
-            response['Content-Disposition'] = f"attachment; filename={myresult}"
-            # -------------------------------------------------------------------
+        bucket_name = request.session['bucket_name']
+        output_path_rem = request.session['output_path']
+        myresult = "result.png"
+        file_location_s3 = os.path.join(output_path_rem, myresult)
+        file_obj = download_bytes_object(bucket_name, file_location_s3)
+        print("file_obj", type(file_obj))
+        mime_type, _ = mimetypes.guess_type(myresult)
+        response = HttpResponse(file_obj, content_type=mime_type)
+        response['Content-Disposition'] = f"attachment; filename={myresult}"
+        # -------------------------------------------------------------------
 
-            # s3 = boto3.client("s3")
-            # url = s3.generate_presigned_url(
-            #                                     'get_object', 
-            #                                     Params = { 
-            #                                                 'Bucket': bucket_name, 
-            #                                                 'Key': file_location_s3}, 
-            #                                     ExpiresIn = 600, )
-            # return HttpResponseRedirect(url)
-            # print("url", url, type(url))
+        # s3 = boto3.client("s3")
+        # url = s3.generate_presigned_url(
+        #                                     'get_object', 
+        #                                     Params = { 
+        #                                                 'Bucket': bucket_name, 
+        #                                                 'Key': file_location_s3}, 
+        #                                     ExpiresIn = 600, )
+        # return HttpResponseRedirect(url)
+        # print("url", url, type(url))
         
     return response
 
@@ -166,23 +166,23 @@ def download_video(request):
 
 
     else:
-        if store_aws_local:
-            filename = os.listdir(request.session['video_path'])[0]
-            filepath = os.path.join(request.session['video_path'], filename)
-            with open(filepath, 'rb') as path:
-                mime_type, _ = mimetypes.guess_type(filepath)
-                response = HttpResponse(path, content_type=mime_type)
-                response['Content-Disposition'] = f"attachment; filename={filename}"
+        # if store_aws_local:
+        #     filename = os.listdir(request.session['video_path'])[0]
+        #     filepath = os.path.join(request.session['video_path'], filename)
+        #     with open(filepath, 'rb') as path:
+        #         mime_type, _ = mimetypes.guess_type(filepath)
+        #         response = HttpResponse(path, content_type=mime_type)
+        #         response['Content-Disposition'] = f"attachment; filename={filename}"
 
-        else:
+        # else:
         
-            bucket_name = request.session['bucket_name']
-            vid_path = request.session['video_path']
-            myresult = "result.mp4"
-            file_obj = download_bytes_object(bucket_name, vid_path)
-            mime_type, _ = mimetypes.guess_type(myresult)
-            response = HttpResponse(file_obj, content_type=mime_type)
-            response['Content-Disposition'] = f"attachment; filename={myresult}"
+        bucket_name = request.session['bucket_name']
+        vid_path = request.session['video_path']
+        myresult = "result.mp4"
+        file_obj = download_bytes_object(bucket_name, vid_path)
+        mime_type, _ = mimetypes.guess_type(myresult)
+        response = HttpResponse(file_obj, content_type=mime_type)
+        response['Content-Disposition'] = f"attachment; filename={myresult}"
 
     return response
 

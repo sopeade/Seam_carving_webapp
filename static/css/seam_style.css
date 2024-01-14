@@ -207,8 +207,8 @@ body {
 
 #back_to_main {
   position: absolute;
-  top: 1%;
-  right: 2%;
+  top: 0.5%;
+  right: 20px;
   background: burlywood;
   max-height: 25px;
   border-radius: 10px;
@@ -224,42 +224,39 @@ body {
   transform: scale(1.05);
 }
 
-ul {
+.about {
   position: absolute;
-  bottom: 10%;
-  right: 2%;
-  list-style-type: none;
-  background: antiquewhite;
-  max-height: 25px;
+  display: inline-block;
+  top: 5%;
+  right: 30px;
+}
+.about .aboutbtn {
   border-radius: 10px;
-  margin: 10px;
-  padding: 3px 10px 10px 10px;
+  background-color: #808080;
   color: black;
-  text-align: center;
+  padding: 3px 10px 3px 10px;
+  font-size: 15px;
+  border: none;
 }
-ul a {
-  color: black;
-}
-ul p {
+.about .about-content {
   display: none;
-}
-ul span {
-  font-weight: bold;
-}
-ul :hover #about_project {
   position: absolute;
-  z-index: 999;
-  width: 200px;
-  background: antiquewhite;
-  height: 55vh;
-  padding: 1em;
-  bottom: 0%;
-  right: 0%;
-  border-radius: 10px;
-  overflow: hidden;
+  right: 5px;
+  background-color: #f1f1f1;
+  min-width: 180px;
+  height: 300px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  border-radius: px;
 }
-ul :hover #about_project p {
+
+.about:hover .about-content {
   display: block;
+  background-color: rgba(118, 150, 180, 0.8);
+}
+
+.about:hover .aboutbtn {
+  background-color: #909090;
 }
 
 /*# sourceMappingURL=seam_style.css.map */
