@@ -134,10 +134,6 @@ def compute_image_energy(self, data):
             if local_storage:
                 cv2.imwrite(os.path.join(seams_path_local, f"seam_image{count}.png"), red_seam_img)
             else:
-                # if store_aws_local:
-                #     # cv2.imwrite(os.path.join(seams_aws, f"seam_image{count}.png"), red_seam_img)
-                #     cv2.imwrite(os.path.join(seams_path_rem, f"seam_image{count}.png"), red_seam_img)
-                # else:
                 path = os.path.join(seams_path_rem, f'seam_image{count}.png')
                 red_seam_img = cv2.imencode('.png', red_seam_img)[1].tobytes()  # imencode returns success, value so index 1 to obtain value
                 image = s3.Bucket(bucket_name).put_object(Key=path, Body=red_seam_img, ContentType='image/png')
@@ -162,9 +158,6 @@ def compute_image_energy(self, data):
     if local_storage:
         cv2.imwrite(os.path.join(output_path_local, f"result.png"), test_array)
     else:
-        # if store_aws_local:
-        #     cv2.imwrite(os.path.join(output_path_rem, f"result.png"), test_array)
-        # else:
         remote_location = os.path.join(output_path_rem, f'result.png')
         result = cv2.imencode('.png', test_array)[1].tobytes()
         s3.Bucket(bucket_name).put_object(Key=remote_location, Body=result, ContentType='image/png')
@@ -210,24 +203,12 @@ def compute_image_energy(self, data):
         video_file = None
 
         temp = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
-        # with tempfile.NamedTemporaryFile() as temp:
-            # video = cv2.VideoWriter(os.path.join(temp.name, f'vid.mp4'), fourcc, 30, (width, height))
         video = cv2.VideoWriter(temp.name, fourcc, 30, (width, height))
-
-        # -------------------------------------------------
-        # video = cv2.VideoWriter(os.path.join(video_path_rem, f'vid.mp4'), fourcc, 30, (width, height))
         img_canvas =  np.uint8(np.zeros((height, width, ch)))
         adj_width = width
         
         # get images and stitch together to form video
         for i in range(count):
-            # if store_aws_local:
-            #     img = cv2.imread(os.path.join(seams_path_rem, f'seam_image{i}.png'))
-            #     img_canvas[:,0:adj_width,:] = img
-            #     adj_width -= 1
-            #     video.write(img_canvas)
-            #     img_canvas = np.uint8(np.zeros((height, width, ch)))
-            # else:
             s3 = boto3.resource('s3')
             key = os.path.join(seams_path_rem, f'seam_image{i}.png')
             img = s3.Bucket(bucket_name).Object(key).get().get('Body').read()
@@ -242,10 +223,6 @@ def compute_image_energy(self, data):
         temp.seek(0)
         # cv2.imwrite("testing_temp.mp4", temp)
         s3 = boto3.client("s3")
-        # s3.upload_fileobj(temp,
-        #                     bucket_name, 
-        #                         video_path_rem)
-        # s3.put_object(temp, Bucket=bucket_name, Key=video_path_rem)
         s3.put_object(Bucket=bucket_name, Key=video_path_rem, Body=temp)
         temp.close()
         # print("video_file", video_file, type(video_file), type(video_file.name))

@@ -171,7 +171,7 @@ if DATABASES['default'].get('OPTIONS'):
 
 
 LOCAL_STORAGE_VAL = False
-
+# 3 heroku variables needed DATABASE_URL, django_secret key& redis vars
 
 if LOCAL_STORAGE_VAL:
     MEDIA_URL = '/media/'
